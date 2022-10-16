@@ -61,6 +61,10 @@ int_float_pointer calculate(const string &str)
     int last_position = 0;
     for (int i = 0; i < str.size(); i++)
     {
+        if (i == 0 && str[i] == '-')
+        {
+            continue;
+        }
         if(op.priority_map.contains(str[i]) || str[i] == '(' || str[i] == ')')
         {
             if (op.priority_map.contains(str[i-1]) || str[i-1] == '(' || str[i-1] == ')')
@@ -200,7 +204,7 @@ int_float_pointer calculate(const string &str)
     }
     else
     {
-        mpfr_prec_t prec = 1024; // 1024 bits
+        mpfr_prec_t prec = 1024 * 8; // 1024 bytes
         mpfr_rnd_t rnd = MPFR_RNDN;
         // add 0 in the front
         mpfr_t zero;
@@ -290,8 +294,18 @@ int_float_pointer calculate(const string &str)
 
         mpfr_exp_t exp;
         string s = mpfr_get_str(NULL, &exp, 10, 0, answer_float, rnd);
-        cout << s << endl;
-        cout << exp << endl;
+        if (s.compare("@NaN@") != 0)
+        {
+        cout << "floating point calculation:";            
+        mpfr_out_str (stdout, 10, 0, answer_float, rnd);
+        cout << endl;
+        // cout << "floating point calculation, the base part is: " << s;
+        // cout << " the exponent is: " << exp << endl;
+        }
+        else
+        {
+            result_ptr.if_error = true;
+        }
         return result_ptr;
     }
 
@@ -300,19 +314,13 @@ int_float_pointer calculate(const string &str)
 
 int main()
 {
-    // init answer
     mpz_init(answer_int);
     mpfr_init(answer_float);
-    // get input
     string input;
-    //getline(cin, input);
-    input = "0.5*3"; //"(-3.5+2)*3"
-    //calculate
+    getline(cin, input);
     int_float_pointer ptr = calculate(input);
-    //print
-    // mpfr_rnd_t rnd = MPFR_RNDN;
-    // mpfr_exp_t exp;
-    // string s = mpfr_get_str(NULL, &exp, 10, 0, answer_float, rnd);
-    cout << "answer is: " << answer_int << endl;
-
+    if (!ptr.if_error && ptr.if_int)
+    {
+        cout << "answer is: " << answer_int << endl;
+    }
 }

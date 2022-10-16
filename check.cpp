@@ -95,7 +95,7 @@ bool detect_valid(const string &str) // By using const we avoid the possible dis
 		}
         else if (str[i] == '+' || str[i] == '-')
         {
-            if (str[i-1] != 'e')
+            if (str[i-1] != 'e' && i != 0)
                 return 0;
         }
 	}

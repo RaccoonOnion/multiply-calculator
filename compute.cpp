@@ -30,7 +30,7 @@ void compute_int(mpz_t a, mpz_t b, char op, mpz_t result)
 
 
     try {
-        if (op == '+' || op == '-' || op == '*' || op == '%')
+        if (op == '+' || op == '-' || op == '*' || op == '%' || op == '^')
         {
             switch (op) 
             {
@@ -39,6 +39,7 @@ void compute_int(mpz_t a, mpz_t b, char op, mpz_t result)
                 case '-':   mpz_sub(result, a, b); break;
                 case '*':   mpz_mul(result, a, b); break;
                 case '%':   mpz_mod(result, a, b); break;
+                case '^':   mpz_pow_ui(result, a, mpz_get_ui(b) ); break;
             }
             // std::cout << a << " * " << b << " = " << result << endl; // print the result in format
 
@@ -80,6 +81,7 @@ void compute_float(mpfr_t a, mpfr_t b, char op, mpfr_t result)
                 case '*':   mpfr_mul(result, a, b, rnd); break;
                 case '/':   mpfr_div(result, a, b, rnd); break;
                 case '^':   mpfr_pow(result, a, b, rnd); break;
+                default :   throw invalid_argument( "Operations are not supported on floating point numbers!" );
             }
 
             // mpfr_clear (a);
