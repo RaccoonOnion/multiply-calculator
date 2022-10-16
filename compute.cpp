@@ -31,9 +31,6 @@ void compute_int(mpz_t a, mpz_t b, char op, mpz_t result)
                 case '^':   mpz_pow_ui(result, a, mpz_get_ui(b) ); break;
             }
             return;
-            // mpz_clear (a);
-            // mpz_clear (b);
-            // mpz_clear (result); // free the memory
         }
     }
     catch (const std::exception & ex )
@@ -44,23 +41,8 @@ void compute_int(mpz_t a, mpz_t b, char op, mpz_t result)
 
 void compute_float(mpfr_t a, mpfr_t b, char op, mpfr_t result)
 {
-    // const char* a_string = input1.c_str(); // converting string object to const char* for further usage
-    // const char* b_string = input2.c_str();
-
     try {
-            // mpfr_t a, b, result; // declare floating-point variable type: mpfr_t
-            // mpfr_prec_t prec = 1024; // declare the precision (in bits) used for mpfr_t, 
-            // // may be set to any value not exceeding current available memory
-            // std::cout << "The current precision is 1024 bits, you may modify it as long as the enough memory can be assigned." << endl;
-
-            // mpfr_init2 (a, prec);
-            // mpfr_init2 (b, prec);
-            // mpfr_init2 (result, prec); // initialize variable with precision
-
             mpfr_rnd_t rnd = MPFR_RNDN; // the rounding mode, as defined by IEEE 754-1985 standard, 3 more rounding mode are available
-
-            // mpfr_set_str(a, a_string, 10, rnd);
-            // mpfr_set_str(b, b_string, 10, rnd);// assign the value to a and b using const char* a_string and b_string, base 10
 
             switch (op) {
                 case '+':   mpfr_add(result, a, b, rnd); break;
@@ -70,11 +52,6 @@ void compute_float(mpfr_t a, mpfr_t b, char op, mpfr_t result)
                 case '^':   mpfr_pow(result, a, b, rnd); break;
                 default :   throw invalid_argument( "Operations are not supported on floating point numbers!" );
             }
-
-            // mpfr_clear (a);
-            // mpfr_clear (b);
-            // mpfr_clear (result);
-            // mpfr_free_cache (); // free the memory
         }
     catch (const std::exception & ex )
     {

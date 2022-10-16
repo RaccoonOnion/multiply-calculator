@@ -2,11 +2,7 @@
 #include <iostream>
 #include <string>
 #include <stack>
-#include <vector>
 #include <unordered_map>
-#include <regex>
-// #include <list>
-// #include <queue>
 #include <deque>
 // GMP and MPFR dependencies
 #include <stdio.h>
@@ -50,19 +46,6 @@ typedef struct _result_tuple{
     bool if_error;
     bool if_int;
 } result_tuple;
-
-// class Operation_Priority
-// {
-// public:
-//     unordered_map<char,int> priority_map = {
-//             {'+',1},
-//             {'-',1},
-//             {'*',2},
-//             {'/',2},
-//             {'%',2},
-//             {'^',3}
-//     };
-// };
 
 result_tuple split(const string &str, const Operation_Priority &op, deque<string> &element_queue)
 {
@@ -264,11 +247,6 @@ result_tuple calculate(const string &str, mpz_t answer_int, mpfr_t answer_float)
             {
                 while(operators.top()!='(')
                 {
-                    // mpfr_init2(A[index], prec); // a
-                    // mpfr_init2(A[index+1], prec); //b
-                    // mpfr_init2(A[index+2], prec); // result
-                    // mpfr_set(A[index+1], *nums_float.top(), rnd); nums_float.pop();
-                    // mpfr_set(A[index], *nums_float.top(), rnd); nums_float.pop();
                     assign(A[index+1], *nums_float.top(), prec, rnd); nums_float.pop();
                     assign(A[index], *nums_float.top(), prec, rnd); nums_float.pop(); 
                     mpfr_init2(A[index+2], prec); // result                
@@ -332,7 +310,6 @@ int main()
 {
     stack<string> var;
     stack<string> exp;
-    //substitution.insert("hhh", "hh");
     string input;
     getline(cin, input);
     while (input.find('=') != std::string::npos)
