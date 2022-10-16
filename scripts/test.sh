@@ -1,47 +1,102 @@
-# The shell script for testing valid and invalid inputs
+# The shell script for testing the calculator program
 #!/bin/bash
 
 # link and compile the source code to generate a.out executable file
 g++ source.cpp check.cpp compute.cpp -lmpfr -lgmp -lgmpxx --std=c++20
 
-# invalid input format
-echo "Inputs: a 1"
-./a.out a 1
-echo "Inputs: a1 1"
-./a.out a1 1
-echo "Inputs: 1a 1"
-./a.out 1a 1
-echo "Inputs: 1+1 1"
-./a.out 1+1 1
-echo "Inputs: 1-1 1"
-./a.out 1-1 1
-echo "Inputs: 1.0e1.2 1"
-./a.out 1.0e1.2 1
-echo "Inputs: 1.0e1e1 1"
-./a.out 1.0e1e1 1
-echo "Inputs: 1.1.1 1"
-./a.out 1.1.1 1
-echo "Inputs: 1. 1"
-./a.out 1. 1
-echo "Inputs: 1.e12 1"
-./a.out 1.e12 1
-echo "Inputs: e1 1"
-./a.out e1 1
+#####################################################################################
+# Integer operations 
+echo "2+3"   
+./a.out <<< "2+3"
+echo "2*3"
+./a.out <<< "2*3"
+echo "2-3"
+./a.out <<< "2-3"
+echo "2%3"
+./a.out <<< "2%3"
+echo "2^3"
+./a.out <<< "2^3"
+echo "-2+3"
+./a.out <<< "-2+3"
+echo "-2*3"
+./a.out <<< "-2*3"
+echo "-2-3"
+./a.out <<< "-2-3"
+echo "-2%3"
+./a.out <<< "-2%3"
+echo "-2^3"
+./a.out <<< "-2^3"
+# Some operations that have to be floating point operation
+echo "2/3"
+./a.out <<< "2/3"
 
-# valid input formats
-echo "Inputs: 2 3"
-./a.out 2 3
-echo "Inputs: 3.1416 2"
-./a.out 3.1416 2
-echo "Inputs: 3.1415 2.0e-2"
-./a.out 3.1415 2.0e-2
+# Parentheses and priority
+echo "5+2*3"
+./a.out <<< "5+2*3"
+echo "(5+2)*3"
+./a.out <<< "(5+2)*3"
+#####################################################################################
 
-echo "Inputs: 1234567890 1234567890"
-./a.out 1234567890 1234567890
-echo "Inputs: 12345678901112131415161718192021222324252627282930 12345678901112131415161718192021222324252627282930"
-./a.out 12345678901112131415161718192021222324252627282930 12345678901112131415161718192021222324252627282930
-echo "Inputs: 1.0e200 1.0e200"
-./a.out 1.0e200 1.0e200
-echo "Inputs: 1.0e20000 1.0e20000"
-./a.out 1.0e20000 1.0e20000
+#####################################################################################
+# Floating point operations
+echo "0.5+2"
+./a.out <<< "0.5+2"
+echo "0.5-2"
+./a.out <<< "0.5-2"
+echo "0.5*2"
+./a.out <<< "0.5*2"
+echo "0.5/2"
+./a.out <<< "0.5/2"
+echo "0.5^2"
+./a.out <<< "0.5^2"
+echo "0.5%2"          # modulo operation is not well defined on floats, get errors
+./a.out <<< "0.5%2"
+echo "-0.5+2*3"
+./a.out <<< "-0.5+2*3"
+
+# Parentheses and priority
+echo "0.5+2*3"
+./a.out <<< "0.5+2*3"
+echo "(0.5+2)*3"
+./a.out <<< "(0.5+2)*3"
+#####################################################################################
+
+#####################################################################################
+# Large integers and large floats
+
+echo "2000000000000000000000000000000+3"   
+./a.out <<< "2000000000000000000000000000000+3"
+echo "2000000000000000000000000000000*3"
+./a.out <<< "2000000000000000000000000000000*3"
+echo "2000000000000000000000000000000-3"
+./a.out <<< "2000000000000000000000000000000-3"
+echo "2000000000000000000000000000000%3"
+./a.out <<< "2000000000000000000000000000000%3"
+echo "2000000000000000000000000000000^3"
+./a.out <<< "2000000000000000000000000000000^3"
+
+echo "2.0e200+3"   
+./a.out <<< "2.0e200+3"
+echo "2.0e200*3"
+./a.out <<< "2.0e200*3"
+echo "2.0e200-3"
+./a.out <<< "2.0e200-3"
+echo "2.0e200%3"
+./a.out <<< "2.0e200%3"
+echo "2.0e200^3"
+./a.out <<< "2.0e200^3"
+
+#####################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
 
