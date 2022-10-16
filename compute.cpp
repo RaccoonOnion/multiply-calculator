@@ -18,17 +18,6 @@ using namespace std;
 
 void compute_int(mpz_t a, mpz_t b, char op, mpz_t result)
 {
-    // bool int_mode = false;
-
-    // // Using detect_int function to check the input type
-    // if (detect_int(input1) && detect_int(input2))
-    //     int_mode = true;
-    // if (op == '%' && !int_mode)
-    // {
-    //     cerr << "Modulo Expression cannot be applied to non-integers!!" << endl; // error!!
-    // }
-
-
     try {
         if (op == '+' || op == '-' || op == '*' || op == '%' || op == '^')
         {
@@ -41,8 +30,6 @@ void compute_int(mpz_t a, mpz_t b, char op, mpz_t result)
                 case '%':   mpz_mod(result, a, b); break;
                 case '^':   mpz_pow_ui(result, a, mpz_get_ui(b) ); break;
             }
-            // std::cout << a << " * " << b << " = " << result << endl; // print the result in format
-
             return;
             // mpz_clear (a);
             // mpz_clear (b);

@@ -9,7 +9,7 @@ bool detect_int(const string &str)
     bool digit = false;
     for (long i = 0; i < str.length(); i++)
     {
-        if (!digit && str[i] == ' ')
+        if (!digit && (str[i] == ' ' || str[i] == '-' || str[i] == '+') )
         {
             continue;
         }

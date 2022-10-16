@@ -4,6 +4,7 @@
 #include <stack>
 #include <vector>
 #include <unordered_map>
+#include <regex>
 // #include <list>
 // #include <queue>
 #include <deque>
@@ -18,24 +19,7 @@
 // header files
 #include "check.hpp"
 #include "compute.hpp"
-
-//buffer
-#define BUFF_SIZE 1024
-
-// global variable
-stack<mpz_t*> nums_int;
-mpz_t answer_int;
-stack<mpfr_t*> nums_float;
-mpfr_t answer_float;
-
-using namespace std;
-
-typedef struct _int_float_pointer{
-    bool if_error;
-    bool if_int;
-    mpz_t* int_pointer;
-    mpfr_t* float_pointer; 
-} int_float_pointer;
+#include "assign.hpp"
 
 class Operation_Priority
 {
@@ -50,15 +34,41 @@ public:
     };
 };
 
-int_float_pointer calculate(const string &str)
-{   
-    // create instance op and element queue
-    Operation_Priority op;
-    deque<string> element_queue = {}; 
-    bool int_mode = true;
+//constants
+#define BUFF_SIZE 1024
+const mpfr_prec_t prec = 1024 * 8;
+const mpfr_rnd_t rnd = MPFR_RNDN;
+const Operation_Priority op;
 
+// global variable
+stack<mpz_t*> nums_int;
+stack<mpfr_t*> nums_float;
+
+using namespace std;
+
+typedef struct _result_tuple{
+    bool if_error;
+    bool if_int;
+} result_tuple;
+
+// class Operation_Priority
+// {
+// public:
+//     unordered_map<char,int> priority_map = {
+//             {'+',1},
+//             {'-',1},
+//             {'*',2},
+//             {'/',2},
+//             {'%',2},
+//             {'^',3}
+//     };
+// };
+
+result_tuple split(const string &str, const Operation_Priority &op, deque<string> &element_queue)
+{
     // split the string and get to know int mode
     int last_position = 0;
+    bool int_mode = true;
     for (int i = 0; i < str.size(); i++)
     {
         if (i == 0 && str[i] == '-')
@@ -78,7 +88,7 @@ int_float_pointer calculate(const string &str)
             if(!detect_valid(tmp))
             {
                 cerr << "Your input contains invalid operands!" << tmp << endl;
-                int_float_pointer ptr = {true, false, NULL, NULL};
+                result_tuple ptr = {true, false};
                 return ptr;
             }
             else
@@ -99,7 +109,7 @@ int_float_pointer calculate(const string &str)
             if(!detect_valid(tmp))
             {
                 cerr << "Your input contains invalid operands!" << tmp << endl;
-                int_float_pointer ptr = {true, false, NULL, NULL};
+                result_tuple ptr = {true, false};
                 return ptr;
             }
             if(int_mode)
@@ -110,6 +120,21 @@ int_float_pointer calculate(const string &str)
             element_queue.push_back(tmp);
         }
     }
+    result_tuple ptr = {false, int_mode};
+    return ptr;
+} 
+
+result_tuple calculate(const string &str, mpz_t answer_int, mpfr_t answer_float)
+{   
+    // create instance op and element queue
+    Operation_Priority op;
+    deque<string> element_queue = {}; 
+    bool int_mode = true;
+    bool error_mode = false;
+
+    result_tuple ptr = split(str, op, element_queue);
+    int_mode = ptr.if_int;
+    error_mode = ptr.if_error;
     
     // calculate
     stack<char> operators;
@@ -130,8 +155,7 @@ int_float_pointer calculate(const string &str)
             // if element is a number
             if (element.length() != 1 || isdigit(element[0]))
             {   
-                const char* a_string = element.c_str();
-                mpz_init_set_str((A[index]), a_string, 10);
+                assign(A[index], element);
                 nums_int.push(&A[index]);
                 index++;
             }
@@ -151,11 +175,9 @@ int_float_pointer calculate(const string &str)
             {
                 while(operators.top()!='(')
                 {
-                    mpz_init(A[index]); // a
-                    mpz_init(A[index+1]); //b
-                    mpz_init(A[index+2]); // result
-                    mpz_set(A[index+1], *nums_int.top()); nums_int.pop();
-                    mpz_set(A[index], *nums_int.top()); nums_int.pop();
+                    assign(A[index+1], *nums_int.top()); nums_int.pop();
+                    assign(A[index], *nums_int.top()); nums_int.pop();  
+                    mpz_init(A[index+2]);                  
                     char oper = operators.top(); operators.pop();
                     compute_int(A[index], A[index+1], oper, A[index+2]);
                     nums_int.push(&A[index+2]);
@@ -170,11 +192,9 @@ int_float_pointer calculate(const string &str)
                 // if possible calculate first!
                 while(!operators.empty() && operators.top()!= '(' && op.priority_map[operators.top()] >= op.priority_map[element[0]])
                 {
-                    mpz_init(A[index]); // a
-                    mpz_init(A[index+1]); //b
-                    mpz_init(A[index+2]); // result
-                    mpz_set(A[index+1], *nums_int.top()); nums_int.pop();
-                    mpz_set(A[index], *nums_int.top()); nums_int.pop();
+                    assign(A[index+1], *nums_int.top()); nums_int.pop();
+                    assign(A[index], *nums_int.top()); nums_int.pop(); 
+                    mpz_init(A[index+2]);  
                     char oper = operators.top(); operators.pop();
                     compute_int(A[index], A[index+1], oper, A[index+2]);
                     nums_int.push(&A[index+2]);
@@ -186,26 +206,28 @@ int_float_pointer calculate(const string &str)
         }
         // we have iterate all characters, now calculate
         while(!operators.empty() && operators.top()!='('){
-            mpz_init(A[index]); //a
-            mpz_init(A[index+1]); //b
-            mpz_init(A[index+2]); //result
-
-            mpz_set(A[index+1], *nums_int.top()); nums_int.pop();
-            mpz_set(A[index], *nums_int.top()); nums_int.pop();
+            assign(A[index+1], *nums_int.top()); nums_int.pop();
+            assign(A[index], *nums_int.top()); nums_int.pop();  
+            mpz_init(A[index+2]);  
             char oper = operators.top(); operators.pop();
             compute_int(A[index], A[index+1], oper, A[index+2]);
             nums_int.push(&A[index+2]);
             index += 3;
 
         }
-        int_float_pointer result_ptr = {false, true, nums_int.top(), NULL};
+        result_tuple result_ptr = {false, true};
         mpz_set(answer_int, *(nums_int.top()));
+        // memory management
+        for (int k = 0; k < index; k ++)
+        {
+            mpz_clear (A[k]);
+        }
+        delete[](A);
+
         return result_ptr;
     }
     else
     {
-        mpfr_prec_t prec = 1024 * 8; // 1024 bytes
-        mpfr_rnd_t rnd = MPFR_RNDN;
         // add 0 in the front
         mpfr_t zero;
         mpfr_init2 (zero, prec);
@@ -222,9 +244,7 @@ int_float_pointer calculate(const string &str)
             // if element is a number
             if (element.length() != 1 || isdigit(element[0]))
             {   
-                const char* a_string = element.c_str();
-                mpfr_init2(A[index], prec);
-                mpfr_set_str((A[index]), a_string, 10, rnd);
+                assign(A[index], element, prec, rnd);
                 nums_float.push(&A[index]);
                 index++;
             }
@@ -244,11 +264,14 @@ int_float_pointer calculate(const string &str)
             {
                 while(operators.top()!='(')
                 {
-                    mpfr_init2(A[index], prec); // a
-                    mpfr_init2(A[index+1], prec); //b
-                    mpfr_init2(A[index+2], prec); // result
-                    mpfr_set(A[index+1], *nums_float.top(), rnd); nums_float.pop();
-                    mpfr_set(A[index], *nums_float.top(), rnd); nums_float.pop();
+                    // mpfr_init2(A[index], prec); // a
+                    // mpfr_init2(A[index+1], prec); //b
+                    // mpfr_init2(A[index+2], prec); // result
+                    // mpfr_set(A[index+1], *nums_float.top(), rnd); nums_float.pop();
+                    // mpfr_set(A[index], *nums_float.top(), rnd); nums_float.pop();
+                    assign(A[index+1], *nums_float.top(), prec, rnd); nums_float.pop();
+                    assign(A[index], *nums_float.top(), prec, rnd); nums_float.pop(); 
+                    mpfr_init2(A[index+2], prec); // result                
                     char oper = operators.top(); operators.pop();
                     compute_float(A[index], A[index+1], oper, A[index+2]);
                     nums_float.push(&A[index+2]);
@@ -263,11 +286,9 @@ int_float_pointer calculate(const string &str)
                 // if possible calculate first!
                 while(!operators.empty() && operators.top()!= '(' && op.priority_map[operators.top()] >= op.priority_map[element[0]])
                 {
-                    mpfr_init2(A[index], prec); // a
-                    mpfr_init2(A[index+1], prec); //b
-                    mpfr_init2(A[index+2], prec); // result
-                    mpfr_set(A[index+1], *nums_float.top(), rnd); nums_float.pop();
-                    mpfr_set(A[index], *nums_float.top(), rnd); nums_float.pop();
+                    assign(A[index+1], *nums_float.top(), prec, rnd); nums_float.pop();
+                    assign(A[index], *nums_float.top(), prec, rnd); nums_float.pop(); 
+                    mpfr_init2(A[index+2], prec); // result  
                     char oper = operators.top(); operators.pop();
                     compute_float(A[index], A[index+1], oper, A[index+2]);
                     nums_float.push(&A[index+2]);
@@ -279,48 +300,85 @@ int_float_pointer calculate(const string &str)
         }
         // we have iterate all characters, now calculate
         while(!operators.empty() && operators.top()!='('){
-            mpfr_init2(A[index], prec); // a
-            mpfr_init2(A[index+1], prec); //b
-            mpfr_init2(A[index+2], prec); // result
-            mpfr_set(A[index+1], *nums_float.top(), rnd); nums_float.pop();
-            mpfr_set(A[index], *nums_float.top(), rnd); nums_float.pop();
+            assign(A[index+1], *nums_float.top(), prec, rnd); nums_float.pop();
+            assign(A[index], *nums_float.top(), prec, rnd); nums_float.pop(); 
+            mpfr_init2(A[index+2], prec); // result  
             char oper = operators.top(); operators.pop();
             compute_float(A[index], A[index+1], oper, A[index+2]);
             nums_float.push(&A[index+2]);
             index += 3;
         }
-        int_float_pointer result_ptr = {false, false, NULL, nums_float.top()};
+        result_tuple result_ptr = {false, false};
         mpfr_set(answer_float, *(nums_float.top()), rnd);
-
         mpfr_exp_t exp;
         string s = mpfr_get_str(NULL, &exp, 10, 0, answer_float, rnd);
-        if (s.compare("@NaN@") != 0)
-        {
-        cout << "floating point calculation:";            
-        mpfr_out_str (stdout, 10, 0, answer_float, rnd);
-        cout << endl;
-        // cout << "floating point calculation, the base part is: " << s;
-        // cout << " the exponent is: " << exp << endl;
-        }
-        else
+        if (s.compare("@NaN@") == 0)
         {
             result_ptr.if_error = true;
         }
+        // memory management
+        for (int k = 0; k < index; k++)
+        {
+            mpfr_clear (A[k]);
+        }
+        mpfr_free_cache ();
+        delete[](A);
         return result_ptr;
     }
-
-
 }
+
 
 int main()
 {
-    mpz_init(answer_int);
-    mpfr_init(answer_float);
+    stack<string> var;
+    stack<string> exp;
+    //substitution.insert("hhh", "hh");
     string input;
     getline(cin, input);
-    int_float_pointer ptr = calculate(input);
+    while (input.find('=') != std::string::npos)
+    {
+        for(int i =0; i < input.length(); i++)
+        {
+            if(input[i] == '=')
+            {
+                var.push(input.substr(0, i));
+                exp.push(input.substr(i+1, input.length() - i));
+            }
+        }
+        getline(cin, input);
+    }
+
+    while(!var.empty()&&!exp.empty())
+    {
+        if(var.top().empty())
+        {    
+            var.pop();
+            exp.pop();
+            continue;
+        }
+        size_t start_pos = 0;
+        while((start_pos = input.find(var.top(), start_pos)) != string::npos) {
+            input.replace(start_pos, var.top().length(), exp.top());
+            start_pos += exp.top().length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+        }
+        var.pop();
+        exp.pop();
+    }
+
+    mpz_t answer_int;
+    mpfr_t answer_float;
+    mpz_init(answer_int);
+    mpfr_init2(answer_float, prec);
+    result_tuple ptr = calculate(input, answer_int, answer_float);
     if (!ptr.if_error && ptr.if_int)
     {
         cout << "answer is: " << answer_int << endl;
     }
+    else if(!ptr.if_error && !ptr.if_int)
+    {
+        cout << "floating point calculation, answer is: ";
+        mpfr_out_str (stdout, 10, 10, answer_float, rnd);
+        cout << endl;
+    }
+
 }
