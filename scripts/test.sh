@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # link and compile the source code to generate a.out executable file
-g++ source.cpp -lmpfr -lgmp -lgmpxx
+g++ source.cpp check.cpp compute.cpp -lmpfr -lgmp -lgmpxx --std=c++20
 
 # invalid input format
 echo "Inputs: a 1"
